@@ -1,10 +1,6 @@
 /*
     BMO GROWER
 */
-#include <Arduino_FreeRTOS.h>
-#include <queue.h>
-#include <semphr.h>
-
 #include <Wire.h>
 #include "SparkFunBME280.h"
 #include <Adafruit_GFX.h>
@@ -13,6 +9,13 @@
 #include <LiquidCrystal_I2C.h>
 #include <EEPROM.h>
 #include "TomThumb.h" // Include the custom font
+
+
+#include "WiFiEsp.h"
+#include "SoftwareSerial.h"
+#include "secrets.h"
+#include "ThingSpeak.h" // always include thingspeak header file after other header files and custom macros
+
 
 /***********************************************************************
  Definição dos Pinos
@@ -52,6 +55,19 @@ int T[]={-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0};
 
 int estado = 0 ;
 
+// Config WiFi
+char ssid[] = "Inovalab";            // your network SSID (name)
+char pass[] = "inovalabpsi21";        // your network password
+int status = WL_IDLE_STATUS;     // the Wifi radio's status
+int keyIndex = 0;            // your network key Index number (needed only for WEP)
+WiFiEspClient  client;
+
+// ThingSpeak
+#define sample_wifi 30000       // mandar dados de 30 em 30s
+unsigned long last_time_wifi = 0;
+unsigned long myChannelNumber = 2190503;
+const char * myWriteAPIKey = "ERLQAPMEJONRCPKI";
+
 /***********************************************************************
  Componentes
  ***********************************************************************/
@@ -66,6 +82,9 @@ LiquidCrystal_I2C lcd(0x27,16,2);   // Set the LCD address to 0x27 for a 16 char
 
 // BME (sensor de umidade e temperatura)
 BME280 bme;                         // Uses I2C address 0x76 (jumper closed)
+
+// WiFi module
+SoftwareSerial Serial1(10, 11); // RX, TX
 
 /***********************************************************************
  mudaEstado
@@ -364,7 +383,27 @@ void drawMoonIcon(int x, int y, int size) {
 *************************************************************************/
 void setup() {
   
+  //Initialize serial and wait for port to open:
   Serial.begin(9600);
+
+  // initialize serial for ESP module
+  Serial1.begin(9600);
+
+  // initialize ESP module
+  WiFi.init(&Serial1);
+  while (!Serial) {
+    ; // wait for serial port to connect. Needed for Leonardo native USB port only
+  }
+
+    // check for the presence of the shield:
+  if (WiFi.status() == WL_NO_SHIELD) {
+    Serial.println("WiFi shield not present");
+    // don't continue:
+    while (true);
+  }
+
+  // ThingSpeak
+  ThingSpeak.begin(client);  // Initialize ThingSpeak
   
   // OLED 0.96
   if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
@@ -403,6 +442,20 @@ void setup() {
 
 void loop() {
   
+  // Connect or reconnect to WiFi
+  if(WiFi.status() != WL_CONNECTED){
+    Serial.print("Attempting to connect to SSID: ");
+    Serial.println(SECRET_SSID);
+    while ( status != WL_CONNECTED) {
+    Serial.print("Attempting to connect to WPA SSID: ");
+    Serial.println(ssid);
+    // Connect to WPA/WPA2 network
+    status = WiFi.begin(ssid, pass);
+  }
+
+  Serial.println("You're connected to the network");
+  }
+
   // Set claro e escuro
   logicaLED();
 
@@ -425,6 +478,22 @@ void loop() {
     }
 
     Serial.println();
+  }
+
+  // Envio de dados WiFi
+  if (millis() - last_time_wifi > sample_wifi) {
+    ThingSpeak.setField(1, int(bme.readTempC()));
+    ThingSpeak.setField(1, int(bme.readFloatHumidity()));
+    last_time_wifi = millis();
+  }
+
+  // write to the ThingSpeak channel
+  int x = ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
+  if(x == 200){
+    Serial.println("Channel update successful.");
+  }
+  else{
+    Serial.println("Problem updating channel. HTTP error code " + String(x));
   }
   
   // debugPrint();
