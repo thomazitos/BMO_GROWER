@@ -19,7 +19,7 @@
  ***********************************************************************/
 #define on_pot_pin A7
 #define off_pot_pin A3
-#define relay_pin 2
+#define relay_pin 13
 #define btn_pin 3                   // botão para mudar estado
 
 /***********************************************************************
@@ -74,7 +74,6 @@ void taskLED(void *pvParameters);       // logica do LED
 void taskLCD(void *pvParameters);       // atualiza dados no LCD
 void taskDados(void *pvParameters);     // armazena dados para gráfico
 void taskOLED(void *pvParameters);     // armazena dados para gráfico
-QueueHandle_t xQueue;
 SemaphoreHandle_t xBinarySemaphore;
 TaskHandle_t xTaskLED, xTaskLCD, xTaskDados, xTaskOLED;
 
