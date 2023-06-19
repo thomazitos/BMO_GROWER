@@ -68,16 +68,6 @@ LiquidCrystal_I2C lcd(0x27,16,2);   // Set the LCD address to 0x27 for a 16 char
 BME280 bme;                         // Uses I2C address 0x76 (jumper closed)
 
 /***********************************************************************
- FreeRTOS
- ***********************************************************************/
-void taskLED(void *pvParameters);       // logica do LED
-void taskLCD(void *pvParameters);       // atualiza dados no LCD
-void taskDados(void *pvParameters);     // armazena dados para gráfico
-void taskOLED(void *pvParameters);     // armazena dados para gráfico
-SemaphoreHandle_t xBinarySemaphore;
-TaskHandle_t xTaskLED, xTaskLCD, xTaskDados, xTaskOLED;
-
-/***********************************************************************
  mudaEstado
  Função para tratar a interrupção do botão --> mudar de estado.
  Parametros de entrada: (int) array
@@ -366,86 +356,6 @@ void drawMoonIcon(int x, int y, int size) {
   display.fillCircle(crescentX + size / 2, crescentY, crescentSize, BLACK);
 }
 
-/***********************************************************************
- Tasks
- ***********************************************************************/
-
-/************************************************************************
- taskLED
- Task responsável por ligar ou desligar o relé para o período de claro ou 
- escuro.
- Parametros de entrada: nenhum
- Retorno: nenhum
-*************************************************************************/
-void taskLED(void *pvParameters) {
-  for( ;; ) {
-    logicaLED();
-  }
-}
-
-/************************************************************************
- taskOLED
- Task responsável por ligar ou desligar o relé para o período de claro ou 
- escuro.
- Parametros de entrada: nenhum
- Retorno: nenhum
-*************************************************************************/
-void taskLED(void *pvParameters) {
-  for( ;; ) {
-    switch(estado){
-      case CONFIG_LED:      // configuração do ciclo circadiano
-        printCONFIG();
-        return;
-      case DATA_T:          // exibição do gráfico de temp x t
-        printDATA_T();
-        return;
-      case DATA_H:          // exibição do gráfico de umid x t
-        printDATA_H();
-        return;      
-    }
-  }
-}
-
-/************************************************************************
- taskLCD
- Task que atualiza dados exibidos no LCD periodicamente.
- Parametros de entrada: nenhum
- Retorno: nenhum
-*************************************************************************/
-void taskLCD(void *pvParameters) {
-  TickType_t xLastWakeTime;
-  const TickType_t xDelay1000ms = pdMS_TO_TICKS( 1000 ); // cada 1s
-
-  for( ;; ) {
-    xSemaphoreTake( xBinarySemaphore, portMAX_DELAY );
-    xLastWakeTime = xTaskGetTickCount();
-
-    printLCD();
-    vTaskDelayUntil( &xLastWakeTime, xDelay1000ms );
-  }
-}
-
-/************************************************************************
- taskDados
- Task que armazena dados periodicamente para criação de gráfico a ser 
- exibido no OLED.
- Parametros de entrada: nenhum
- Retorno: nenhum
-*************************************************************************/
-void taskDados(void *pvParameters) {
-  TickType_t xLastWakeTime;
-  const TickType_t xDelay1h = pdMS_TO_TICKS( 3600000 ); // cada 1s
-
-  for( ;; ) {
-    xSemaphoreTake( xBinarySemaphore, portMAX_DELAY );
-    xLastWakeTime = xTaskGetTickCount();
-
-    shiftLeft(TEMP, 13, int(bme.readTempC()));
-    shiftLeft(HUMI, 13, int(bme.readFloatHumidity()));
-    vTaskDelayUntil( &xLastWakeTime, xDelay1h );
-  }
-}
-
 /************************************************************************
  Main
  Loop principal de controle que executa a maquina de estados
@@ -489,25 +399,10 @@ void setup() {
   shiftLeft(TEMP, 13, int(bme.readTempC()));                    // adiciona leitura de temperatura ao array
   shiftLeft(HUMI, 13, int(bme.readFloatHumidity()));            // adiciona leitura de umidade ao array
 
-  // Application Tasks
-  xBinarySemaphore = xSemaphoreCreateBinary();
-  if(xBinarySemaphore != NULL)
-  {
-    xTaskCreate(taskLED,"taskLED", 1000, NULL, 1, &xTaskLED);
-    xTaskCreate(taskLCD,"taskLCD", 1000, NULL, 1, &xTaskLCD);
-    xTaskCreate(taskDados,"taskDados", 1000, NULL, 1, &xTaskDados);
-    xTaskCreate(taskOLED,"taskOLED", 1000, NULL, 1, &xTaskOLED);
-    vTaskStartScheduler();
-  }
-  else
-  {
-    /* The semaphore could not be created. */
-  }
-
 }
 
 void loop() {
-  /*
+  
   // Set claro e escuro
   logicaLED();
 
@@ -544,7 +439,7 @@ void loop() {
       printDATA_H();
       return;      
   }
-  */
+  
 }
 /*
 void printTIME(){
