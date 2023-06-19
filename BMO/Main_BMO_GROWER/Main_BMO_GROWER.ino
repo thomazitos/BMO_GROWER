@@ -437,60 +437,6 @@ void loop() {
   }
   
 }
-/*
-void printTIME(){
-  // Display Text - Dia da semana
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-  display.setCursor(0, 0);
-  display.print(rtc.getDOWStr());
-  display.print("  ");
-  display.print(rtc.getDateStr());
-
-  // Desenha borda do relógio (com cantos arredondados)
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-  display.drawRoundRect(0, 10, 128,20, 10, WHITE);
-
-  
-  // Display Text - Hora
-  display.setTextSize(2);
-  display.setTextColor(WHITE);
-  display.setCursor(17, 13);
-  display.print(rtc.getTimeStr());
-
-  // exibe no display
-  display.display();
-  
-  display.clearDisplay();  // Clear the buffer
-}
-*/
-
-/*
-void debugPrint(){
-  // BME
-  Serial.print(" HumidityB: ");
-  Serial.print(bme.readFloatHumidity(), 0);
-  Serial.print(" PressureB: ");
-  Serial.print(bme.readFloatPressure(), 0);
-  Serial.print(" TempB: ");
-  Serial.print(bme.readTempC(), 2);
-  
-  //LED  
-  Serial.print("Liga:");
-  Serial.print(LigaValue);
-  Serial.print("   Desliga:");
-  Serial.print(DesligaValue);
-  Serial.print("   LED:");
-  Serial.print(Liga_LED);
-  Serial.print("   Horario:");
-  Serial.println(horario);
-
-  //LED  
-  Serial.print("Estado ");
-  Serial.print(estado); 
-}
-*/
 
 
 
