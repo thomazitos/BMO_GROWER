@@ -1,10 +1,6 @@
 /*
     BMO GROWER
 */
-#include <Arduino_FreeRTOS.h>
-#include <queue.h>
-#include <semphr.h>
-
 #include <Wire.h>
 #include "SparkFunBME280.h"
 #include <Adafruit_GFX.h>
