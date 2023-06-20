@@ -414,13 +414,6 @@ void loop() {
     shiftLeft(HUMI, 13, int(bme.readFloatHumidity()));
     
     last_time_aquisition = millis();
-
-    for (int i = 0; i < 13; i++) {
-      Serial.print(HUMI[i]);
-      Serial.print(" ");
-    }
-
-    Serial.println();
   }
   
   // debugPrint();
