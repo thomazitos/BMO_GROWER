@@ -2,7 +2,6 @@
     BMO GROWER
 */
 #include <Arduino_FreeRTOS.h>
-#include <queue.h>
 #include <semphr.h>
 
 #include <Wire.h>
@@ -44,8 +43,6 @@ bool Liga_LED;                      // TRUE: ligado, FALSE: desligado
 
 // Config Temperatura e Umidade
 #define sample_t 3600000            // periodo de amostragem em segundos (1h)
-unsigned long last_time_lcd = 0;
-unsigned long last_time_aquisition = 0;
 int TEMP[]={0,0,0,0,0,0,0,0,0,0,0,0,0};
 int HUMI[]={0,0,0,0,0,0,0,0,0,0,0,0,0};
 int T[]={-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0};
@@ -390,7 +387,7 @@ void taskLED(void *pvParameters) {
  Parametros de entrada: nenhum
  Retorno: nenhum
 *************************************************************************/
-void taskLED(void *pvParameters) {
+void taskOLED(void *pvParameters) {
   for( ;; ) {
     switch(estado){
       case CONFIG_LED:      // configuração do ciclo circadiano
@@ -503,104 +500,9 @@ void setup() {
   {
     /* The semaphore could not be created. */
   }
-
 }
 
-void loop() {
-  /*
-  // Set claro e escuro
-  logicaLED();
-
-  // Atualização do LCD
-  if (millis() - last_time_lcd > 1000) {      // a cada 1s
-    printLCD();
-    last_time_lcd = millis();
-  }
-
-  if (millis() - last_time_aquisition > sample_t) {
-    // adiciona ultimo leitura de temperatura e umidade
-    shiftLeft(TEMP, 13, int(bme.readTempC()));
-    shiftLeft(HUMI, 13, int(bme.readFloatHumidity()));
-    
-    last_time_aquisition = millis();
-
-    for (int i = 0; i < 13; i++) {
-      Serial.print(HUMI[i]);
-      Serial.print(" ");
-    }
-
-    Serial.println();
-  }
-  
-  // debugPrint();
-  switch(estado){
-    case CONFIG_LED:      // configuração do ciclo circadiano
-      printCONFIG();
-      return;
-    case DATA_T:          // exibição do gráfico de temp x t
-      printDATA_T();
-      return;
-    case DATA_H:          // exibição do gráfico de umid x t
-      printDATA_H();
-      return;      
-  }
-  */
-}
-/*
-void printTIME(){
-  // Display Text - Dia da semana
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-  display.setCursor(0, 0);
-  display.print(rtc.getDOWStr());
-  display.print("  ");
-  display.print(rtc.getDateStr());
-
-  // Desenha borda do relógio (com cantos arredondados)
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-  display.drawRoundRect(0, 10, 128,20, 10, WHITE);
-
-  
-  // Display Text - Hora
-  display.setTextSize(2);
-  display.setTextColor(WHITE);
-  display.setCursor(17, 13);
-  display.print(rtc.getTimeStr());
-
-  // exibe no display
-  display.display();
-  
-  display.clearDisplay();  // Clear the buffer
-}
-*/
-
-/*
-void debugPrint(){
-  // BME
-  Serial.print(" HumidityB: ");
-  Serial.print(bme.readFloatHumidity(), 0);
-  Serial.print(" PressureB: ");
-  Serial.print(bme.readFloatPressure(), 0);
-  Serial.print(" TempB: ");
-  Serial.print(bme.readTempC(), 2);
-  
-  //LED  
-  Serial.print("Liga:");
-  Serial.print(LigaValue);
-  Serial.print("   Desliga:");
-  Serial.print(DesligaValue);
-  Serial.print("   LED:");
-  Serial.print(Liga_LED);
-  Serial.print("   Horario:");
-  Serial.println(horario);
-
-  //LED  
-  Serial.print("Estado ");
-  Serial.print(estado); 
-}
-*/
-
+void loop() {}
 
 
 
